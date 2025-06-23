@@ -1,62 +1,44 @@
 import { ArticleCard } from "@/components/article-card";
-import { Title } from "@/components/typography";
 import type { IArticle } from "@/models/article.model";
 import { articleService } from "@/services/articles.service";
-import { Select, Spin } from "antd";
-import { useEffect, useRef } from "react";
+import { Select } from "antd";
+import { useCallback } from "react";
 import styles from "./main.module.css";
 import { useSort, SORT_OPTION, selectSortOptions } from "@/hooks/use-sort";
 import { usePagination } from "@/hooks/use-pagination";
-import { useStatusState, LOADING_STATUS } from "@/hooks/use-status-state";
+import { useFetch } from "@/hooks/use-fetch";
 
 export const MainPage = () => {
-    const [state, setState] = useStatusState<IArticle[]>();
     const [sort, handleSortChange, sortArticlesByTitle] = useSort();
     const [Pagination, page, pageSize] = usePagination();
-    const articlesResponse = useRef<IArticle[]>([]);
 
-    useEffect(() => {
-        (async () => {
-            setState({ status: LOADING_STATUS.PENDING });
+    const fetchFn = useCallback(
+        () => articleService.getArticles(page, pageSize),
+        [page, pageSize],
+    );
 
-            const response = await articleService.getArticles(page, pageSize);
+    const renderSuccess = useCallback(
+        (responseArticles: IArticle[], initialResponse: IArticle[] | null) => {
+            let articles: IArticle[] = [];
 
-            if (response.success) {
-                articlesResponse.current = response.data;
-
-                setState({
-                    status: LOADING_STATUS.SUCCESS,
-                    data: response.data,
-                });
+            if (initialResponse && sort === SORT_OPTION.NONE) {
+                articles = initialResponse;
             } else {
-                setState({ status: LOADING_STATUS.ERROR });
+                articles = [...responseArticles].sort(sortArticlesByTitle());
             }
-        })();
-    }, [page, pageSize, setState]);
 
-    let content = null;
+            return (
+                <>
+                    {articles.map((article) => (
+                        <ArticleCard article={article} key={article.id} />
+                    ))}
+                </>
+            );
+        },
+        [sort, sortArticlesByTitle],
+    );
 
-    switch (state?.status) {
-        case LOADING_STATUS.SUCCESS: {
-            const articles =
-                sort === SORT_OPTION.NONE
-                    ? articlesResponse.current
-                    : [...state.data].sort(sortArticlesByTitle());
-
-            content = articles.map((article) => (
-                <ArticleCard article={article} key={article.id} />
-            ));
-            break;
-        }
-        case LOADING_STATUS.ERROR: {
-            content = <Title level={2}>Failed to get articles</Title>;
-            break;
-        }
-        case LOADING_STATUS.PENDING: {
-            content = <Spin size="large" />;
-            break;
-        }
-    }
+    const content = useFetch(fetchFn, renderSuccess);
 
     return (
         content && (

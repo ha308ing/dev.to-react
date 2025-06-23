@@ -2,92 +2,33 @@ import { ArticleImage } from "@/components/article-image";
 import { Text, Title } from "@/components/typography";
 import type { IArticle } from "@/models/article.model";
 import { articleService } from "@/services/articles.service";
-import { Spin } from "antd";
-import { useEffect } from "react";
+import { useCallback } from "react";
 import { useLocation, useParams } from "react-router";
-import { useStatusState, LOADING_STATUS } from "@/hooks/use-status-state";
 import { HomeButton } from "@/components/home-button";
+import { useFetch } from "@/hooks/use-fetch";
 
 export const ArticlePage = () => {
-    const { id: articleId } = useParams();
-    const { state: locationState } = useLocation();
+    const params = useParams();
+    const location = useLocation();
 
-    const [state, setState] = useStatusState<IArticle>();
+    const fetchFn = useCallback(() => {
+        const articleInLocation = location.state?.article;
 
-    useEffect(() => {
-        const articleFromLocation = locationState?.article;
-
-        const isArticleInLocation = checkArticleInLocation(articleFromLocation);
+        const isArticleInLocation = checkArticleInLocation(articleInLocation);
 
         if (isArticleInLocation) {
-            return setState({
-                status: LOADING_STATUS.SUCCESS,
-                data: articleFromLocation,
-            });
+            return Promise.resolve({
+                success: true,
+                data: articleInLocation,
+            } as const);
+        } else if (params?.id != undefined) {
+            return articleService.getArticle(+params.id);
+        } else {
+            return Promise.resolve({ success: false } as const);
         }
+    }, [params, location]);
 
-        if (articleId == undefined) {
-            return setState({
-                status: LOADING_STATUS.ERROR,
-            });
-        }
-
-        (async () => {
-            setState({ status: LOADING_STATUS.PENDING });
-
-            const response = await articleService.getArticle(+articleId);
-
-            if (response.success) {
-                setState({
-                    status: LOADING_STATUS.SUCCESS,
-                    data: response.data,
-                });
-            } else {
-                setState({ status: LOADING_STATUS.ERROR });
-            }
-        })();
-    }, [locationState, articleId, setState]);
-
-    let content;
-
-    switch (state?.status) {
-        case LOADING_STATUS.PENDING: {
-            content = <Spin size="large" />;
-            break;
-        }
-        case LOADING_STATUS.ERROR: {
-            content = <Title level={2}>Failed to get article</Title>;
-            break;
-        }
-        case LOADING_STATUS.SUCCESS: {
-            const { data: article } = state;
-            content = (
-                <>
-                    <ArticleImage
-                        style={{
-                            display: "block",
-                            width: "100%",
-                        }}
-                        article={article}
-                    />
-                    <Title level={1}>{article?.title}</Title>
-                    <ul>
-                        <li>
-                            <Text>Description: {article?.description}</Text>
-                        </li>
-                        <li>
-                            <Text>
-                                {`Published: ${new Date(article?.published_at).toLocaleString()}`}
-                            </Text>
-                        </li>
-                        <li>
-                            <Text>Tags: {article?.tags}</Text>
-                        </li>
-                    </ul>
-                </>
-            );
-        }
-    }
+    const content = useFetch<IArticle>(fetchFn, renderSuccess);
 
     return (
         <article
@@ -106,4 +47,32 @@ export const ArticlePage = () => {
 
 function checkArticleInLocation(article: unknown): article is IArticle {
     return article != undefined;
+}
+
+function renderSuccess(article: IArticle) {
+    return (
+        <>
+            <ArticleImage
+                style={{
+                    display: "block",
+                    width: "100%",
+                }}
+                article={article}
+            />
+            <Title level={1}>{article?.title}</Title>
+            <ul>
+                <li>
+                    <Text>Description: {article?.description}</Text>
+                </li>
+                <li>
+                    <Text>
+                        {`Published: ${new Date(article?.published_at).toLocaleString()}`}
+                    </Text>
+                </li>
+                <li>
+                    <Text>Tags: {article?.tags}</Text>
+                </li>
+            </ul>
+        </>
+    );
 }
