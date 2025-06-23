@@ -1,0 +1,27 @@
+.main {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 1.5rem;
+    align-items: center;
+    max-inline-size: 800px;
+    margin-inline: auto;
+}
+
+.controls {
+    padding-block: 1rem;
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 1.5rem;
+    align-items: center;
+    position: fixed;
+    background: #fff;
+    inline-size: 100%;
+}
+
+.articles {
+    margin-block-start: 10rem;
+    padding-block-end: 3rem;
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 1rem;
+}
