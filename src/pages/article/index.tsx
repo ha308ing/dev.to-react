@@ -6,6 +6,7 @@ import { useCallback } from "react";
 import { useLocation, useParams } from "react-router";
 import { HomeButton } from "@/components/home-button";
 import { useFetch } from "@/hooks/use-fetch";
+import styles from "./article.module.css";
 
 export const ArticlePage = () => {
     const params = useParams();
@@ -31,14 +32,7 @@ export const ArticlePage = () => {
     const content = useFetch<IArticle>(fetchFn, renderSuccess);
 
     return (
-        <article
-            style={{
-                display: "flex",
-                flexFlow: "column",
-                maxInlineSize: "800px",
-                marginInline: "auto",
-            }}
-        >
+        <article className={styles.article}>
             {content}
             <HomeButton />
         </article>
@@ -52,13 +46,7 @@ function checkArticleInLocation(article: unknown): article is IArticle {
 function renderSuccess(article: IArticle) {
     return (
         <>
-            <ArticleImage
-                style={{
-                    display: "block",
-                    width: "100%",
-                }}
-                article={article}
-            />
+            <ArticleImage className={styles.articleImage} article={article} />
             <Title level={1}>{article?.title}</Title>
             <ul>
                 <li>
