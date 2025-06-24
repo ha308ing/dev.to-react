@@ -1,0 +1,55 @@
+.articleCard {
+    display: grid;
+    grid-template: "articleImage articleInfo" auto / 1fr 1fr;
+    gap: 1rem;
+    max-inline-size: 1000px;
+    align-items: center;
+}
+
+.articleImage {
+    grid-area: articleImage;
+    max-width: 100%;
+    border-radius: 0.5rem;
+}
+
+.articleInfo {
+    display: grid;
+    grid-template:
+        "title title" auto
+        "avatar author" auto
+        "footer footer" auto / auto 1fr;
+    padding: 0.3rem 0.5rem;
+    row-gap: 0.5rem;
+    column-gap: 0.5rem;
+}
+
+.avatarImage {
+    inline-size: 3rem;
+    block-size: auto;
+    border-radius: 50%;
+    place-self: center;
+    grid-area: avatar;
+}
+
+.title {
+    grid-area: title;
+    margin: 0;
+}
+
+.author {
+    grid-area: author;
+    align-self: center;
+    font-size: 1em;
+}
+
+.footer {
+    grid-area: footer;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.readingTime {
+    margin-inline-start: auto;
+}

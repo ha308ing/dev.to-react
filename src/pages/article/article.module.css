@@ -1,0 +1,11 @@
+.article {
+    display: flex;
+    flex-flow: column nowrap;
+    max-inline-size: 800px;
+    margin-inline: auto;
+}
+
+.articleImage {
+    display: block;
+    width: 100%;
+}
