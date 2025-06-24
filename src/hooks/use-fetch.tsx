@@ -8,13 +8,19 @@ export const LOADING_STATUS = {
     ERROR: "error",
 } as const;
 
+type TFetchFn<T> = () => Promise<
+    { success: false } | { success: true; data: T }
+>;
+type TSuccessRender<T> = (
+    data: T,
+    initialResponse: null | T,
+) => React.ReactNode;
+
 export const useFetch = <T = unknown,>(
-    fetchFn: () => Promise<{ success: false } | { success: true; data: T }>,
-    successRender: (data: T, initialResponse: null | T) => React.ReactNode,
-    pendingRender: () => React.ReactNode = () => <Spin size="large" />,
-    errorRender: () => React.ReactNode = () => (
-        <Title level={2}>Failed to get resource</Title>
-    ),
+    fetchFn: TFetchFn<T>,
+    successRender: TSuccessRender<T>,
+    pendingRender: () => React.ReactNode = pendingRenderDefault,
+    errorRender: () => React.ReactNode = errorRenderDefault,
 ) => {
     const [state, setState] = useState<
         | { status: typeof LOADING_STATUS.PENDING }
@@ -62,3 +68,11 @@ export const useFetch = <T = unknown,>(
 
     return content;
 };
+
+function pendingRenderDefault() {
+    return <Spin size="large" />;
+}
+
+function errorRenderDefault() {
+    return <Title level={2}>Failed to get resource</Title>;
+}
